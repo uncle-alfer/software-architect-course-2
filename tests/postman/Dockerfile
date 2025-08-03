@@ -8,6 +8,8 @@ COPY package*.json ./
 # Install dependencies
 RUN npm install
 
+RUN npm ci
+
 # Copy test files
 COPY . .
 
