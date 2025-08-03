@@ -1,0 +1,59 @@
+@startuml to-be-container
+!includeurl https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+' ----------------------------------------------------------
+' Actors
+Person(user, "Пользователь", "Веб, Smart TV, мобильное")
+
+' ----------------------------------------------------------
+' System boundary
+System_Boundary(cinema, "Сервис «КиноБездна»") {
+
+    Container(api,       "API Gateway",           "Go 1.22 / Fiber",         "Единая точка входа, rate-limit, feature-flags")
+    Container(auth,      "Identity Service",      "Keycloak 23",             "OAuth 2.1 / JWT, SSO")
+    Container(movies,    "Catalog Service",       "Go 1.22 / gRPC",          "Метаданные фильмов, поиск")
+    Container(stream,    "Streaming Edge",        "Nginx 1.25 + HLS/DASH",   "Отдача видео-сегментов с S3-подпиской")
+    Container(payments,  "Payments & Billing",    "Node 20 / NestJS",        "Подписки, жизненный цикл платежей")
+    Container(reco,      "Recommendation Facade", "Python 3.11 / FastAPI",   "Прослойка к внешней ML-системе")
+    Container(events,    "Events Service",        "Go 1.22",                 "Outbox-producer, Kafka-consumer")
+    Container(admin,     "Back-office UI",        "React + Vite",            "Управление контентом, отчётность")
+
+    ' ----- Databases inside the boundary -----
+    ContainerDb(pg,      "PostgreSQL 15 (RDS)",   "SQL", "schemas: movies, users, billing")
+    ContainerDb(ks,      "Kafka 3.6 (Confluent)", "Kafka", "Топики: user-events, billing, viewing")
+    Container_Ext(s3,    "AWS S3 «kino-media»",   "Object Storage", "Master-файлы и постеры")
+
+    ' ----- Relationships (sync) -----
+    Rel(user, api,        "HTTPS/JSON")
+    Rel(api, auth,        "OAuth flows (sync)")
+    Rel(api, movies,      "gRPC (sync)")
+    Rel(api, stream,      "Signed URL → HLS (sync)")
+    Rel(api, payments,    "REST / JSON (sync)")
+    Rel(api, reco,        "REST / JSON (sync)")
+
+    ' ----- Relationships (internal async) -----
+    Rel_L(movies,   events, "Domain events (outbox)", "pgoutput")
+    Rel(events,     ks,     "produce → user-events, billing, viewing")
+    Rel_L(payments, ks,     "consume user-events, produce billing")
+
+    ' DB connections
+    Rel(movies,   pg, "JDBC")
+    Rel(payments, pg, "JDBC")
+    Rel(events,   pg, "JDBC (outbox)")
+
+    ' Storage & CDN
+    Rel(stream, s3, "GET signed .ts/.mp4 chunks")
+
+}
+
+' ----------------------------------------------------------
+' External systems
+Container_Ext(reco_ext,   "ML Recommendation Engine", "SaaS",  "gRPC / REST")
+Container_Ext(pay_gate,   "Payment Processor (Stripe)", "SaaS", "Web-hooks")
+Container_Ext(cdn,        "AWS CloudFront CDN", "CDN", "Edge-cache HLS/DASH")
+
+' ----- External relationships -----
+Rel(reco,    reco_ext, "REST/JSON (sync)")
+Rel(payments, pay_gate, "HTTPS (sync) / Webhooks (async)")
+Rel(stream,   cdn,      "Push invalidations / Signed URLs")
+
+@enduml
