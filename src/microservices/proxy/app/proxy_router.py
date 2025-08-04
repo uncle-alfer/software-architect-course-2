@@ -4,9 +4,10 @@ from fastapi import APIRouter, Request, Response
 from starlette.responses import StreamingResponse
 from app.settings import get_settings
 
-router   = APIRouter()
+router = APIRouter()
 settings = get_settings()
-client   = httpx.AsyncClient(timeout=60.0)
+client = httpx.AsyncClient(timeout=60.0)
+
 
 def choose_backend(path: str) -> str | None:
     """Возвращает base-URL нужного сервиса или None, если путь неизвестен."""
@@ -23,8 +24,8 @@ def choose_backend(path: str) -> str | None:
     if path.startswith("/api/"):
         return str(settings.MONOLITH_URL)
 
-@router.api_route("/{full_path:path}",
-                  methods=["GET","POST","PUT","PATCH","DELETE","OPTIONS","HEAD"])
+
+@router.api_route("/{full_path:path}", methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"])
 async def proxy(request: Request, full_path: str) -> Response:
     upstream = choose_backend(request.url.path)
     if upstream is None:
@@ -35,19 +36,17 @@ async def proxy(request: Request, full_path: str) -> Response:
     resp = await client.request(
         request.method,
         target_url,
-         headers={**request.headers, "x-request-id": request.headers.get("x-request-id","proxy-generated")},
-         params=request.query_params,
-         content=await request.body(),
-         follow_redirects=False
-     )
+        headers={**request.headers, "x-request-id": request.headers.get("x-request-id", "proxy-generated")},
+        params=request.query_params,
+        content=await request.body(),
+        follow_redirects=False,
+    )
 
     if resp.status_code >= 300:
         return Response("[]", media_type="application/json", status_code=200)
 
     body = await resp.aread()
-    headers = {k: v for k, v in resp.headers.items()
-               if k.lower() not in ("content-length", "transfer-encoding")}
-    return Response(content=body,
-                    status_code=resp.status_code,
-                    headers=headers,
-                    media_type=resp.headers.get("content-type"))
+    headers = {k: v for k, v in resp.headers.items() if k.lower() not in ("content-length", "transfer-encoding")}
+    return Response(
+        content=body, status_code=resp.status_code, headers=headers, media_type=resp.headers.get("content-type")
+    )
