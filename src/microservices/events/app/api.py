@@ -1,7 +1,8 @@
 ﻿import logging, asyncio
 from fastapi import APIRouter, HTTPException, status
 from .models import UserEvent, MovieEvent, PaymentEvent
-from .kafka_bus import producer, wait_kafka, stop_kafka
+# from .kafka_bus import producer, wait_kafka, stop_kafka
+from . import kafka_bus as kb
 from .settings import get_settings
 
 router = APIRouter()
@@ -17,17 +18,17 @@ TOPIC = {
 
 @router.on_event("startup")
 async def _startup():
-    await wait_kafka()
+    await kb.wait_kafka()
 
 
 @router.on_event("shutdown")
 async def _shutdown():
-    await stop_kafka()
+    await kb.stop_kafka()
 
 
 async def _produce(topic: str, payload: dict):
     try:
-        await producer.send(topic, payload)
+        await kb.producer.send(topic, payload)
     except Exception as exc:
         log.error("Kafka send failed: %s", exc)
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="kafka unavailable")

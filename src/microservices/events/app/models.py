@@ -1,5 +1,6 @@
 ﻿from uuid import uuid4
 from datetime import datetime
+from time import time_ns
 from typing import Optional
 
 from pydantic import BaseModel, Field, Extra
@@ -7,7 +8,7 @@ from pydantic import BaseModel, Field, Extra
 
 class BaseEvent(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid4()))
-    ts: int = Field(default_factory=lambda: datetime.utcnow().timestamp_ns())
+    ts: int = Field(default_factory=time_ns)
 
     class Config:
         extra = Extra.ignore

@@ -12,7 +12,7 @@ async def wait_kafka(timeout: int = 30):
     global producer
     producer = AIOKafkaProducer(
         bootstrap_servers=BOOTSTRAP,
-        value_serializer=lambda v: json.dumps(v).encode(),
+        value_serializer=lambda v: json.dumps(v, default=str).encode(),
     )
     deadline = asyncio.get_event_loop().time() + timeout
     while True:
