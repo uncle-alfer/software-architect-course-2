@@ -21,6 +21,8 @@ def choose_backend(path: str) -> str | None:
         return str(settings.EVENTS_SERVICE_URL)
     if path.startswith("/api/users"):
         return str(settings.MONOLITH_URL)
+    if path.startswith("/api/"):
+        return str(settings.MONOLITH_URL)
 
 @router.api_route("/{full_path:path}",
                   methods=["GET","POST","PUT","PATCH","DELETE","OPTIONS","HEAD"])
