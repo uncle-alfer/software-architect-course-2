@@ -108,6 +108,7 @@ services:
     environment:
       PORT: 8082
       KAFKA_BROKERS: kafka:9092
+      KAFKA_WAIT_TIMEOUT: 120
     networks:
       - cinemaabyss-network
 

@@ -2,12 +2,13 @@
 from aiokafka import AIOKafkaProducer
 
 BOOTSTRAP = os.getenv("KAFKA_BROKERS", "kafka:9092")
+WAIT_TIMEOUT = int(os.getenv("KAFKA_WAIT_TIMEOUT", "120"))
 log = logging.getLogger("kafka-bus")
 
 producer: AIOKafkaProducer | None = None
 
 
-async def wait_kafka(timeout: int = 30):
+async def wait_kafka(timeout: int = WAIT_TIMEOUT):
     """Блокируем запуск приложения, пока Kafka не примет соединение."""
     global producer
     producer = AIOKafkaProducer(

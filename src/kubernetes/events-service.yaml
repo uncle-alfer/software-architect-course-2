@@ -24,6 +24,8 @@ spec:
               value: "8082"
             - name: KAFKA_BROKERS
               value: "kafka:9092"
+            - name: KAFKA_WAIT_TIMEOUT
+              value: "120"
           resources:
             limits: { cpu: "300m", memory: "256Mi" }
             requests: { cpu: "100m", memory: "128Mi" }
