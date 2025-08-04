@@ -58,8 +58,8 @@ jobs:
           docker compose up -d
           # Wait for services to be ready
           echo "Waiting for services to be ready..."
-          # sleep 15
-          until curl -s http://proxy-service:8000/health > /dev/null; do sleep 2; done
+          sleep 15
+          # until curl -s http://proxy-service:8000/health > /dev/null; do sleep 2; done 
           # Build the Docker image
           docker build -t cinemaabyss-api-tests .
           

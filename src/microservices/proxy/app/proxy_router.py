@@ -43,6 +43,10 @@ async def proxy(request: Request, full_path: str) -> Response:
     if resp.status_code >= 300:
         return Response("[]", media_type="application/json", status_code=200)
 
-    return StreamingResponse(resp.aiter_raw(),
-                             status_code=resp.status_code,
-                             headers=resp.headers)
+    body = await resp.aread()
+    headers = {k: v for k, v in resp.headers.items()
+               if k.lower() not in ("content-length", "transfer-encoding")}
+    return Response(content=body,
+                    status_code=resp.status_code,
+                    headers=headers,
+                    media_type=resp.headers.get("content-type"))
