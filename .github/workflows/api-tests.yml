@@ -34,16 +34,16 @@ jobs:
           docker compose --version
       
       - name: Start services with Docker Compose
-        # run: |
-        #   docker compose up -d
-        #   # Wait for services to be ready
-        #   echo "Waiting for services to be ready..."
-        #   sleep 120
         run: |
-          docker compose up -d --quiet-pull
-          docker compose ps
-          # ждём ВСЕ контейнеры с health=healthy
-          docker compose wait
+          docker compose up -d
+          # Wait for services to be ready
+          echo "Waiting for services to be ready..."
+          sleep 120
+        # run: |
+        #   docker compose up -d --quiet-pull
+        #   docker compose ps
+        #   # ждём ВСЕ контейнеры с health=healthy
+        #   docker compose wait
       
       - name: Set up Node.js
         uses: actions/setup-node@v3
