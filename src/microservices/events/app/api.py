@@ -1,39 +1,56 @@
-﻿from fastapi import APIRouter, BackgroundTasks
+﻿import logging, asyncio
+from fastapi import APIRouter, HTTPException, status
 from .models import UserEvent, MovieEvent, PaymentEvent
-from .kafka_bus import producer, start_consumer
+from .kafka_bus import producer, wait_kafka, stop_kafka
 from .settings import get_settings
 
 router = APIRouter()
 st = get_settings()
+log = logging.getLogger("events-api")
+
+TOPIC = {
+    "user": st.TOPIC_USERS,
+    "movie": st.TOPIC_MOVIES,
+    "payment": st.TOPIC_PAYMENTS,
+}
+
 
 @router.on_event("startup")
-async def _start(): await producer.start()
+async def _startup():
+    await wait_kafka()
+
 
 @router.on_event("shutdown")
-async def _stop(): await producer.stop()
+async def _shutdown():
+    await stop_kafka()
 
-# --- 1. User ---
+
+async def _produce(topic: str, payload: dict):
+    try:
+        await producer.send(topic, payload)
+    except Exception as exc:
+        log.error("Kafka send failed: %s", exc)
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="kafka unavailable")
+
+
 @router.post("/api/events/user", status_code=201)
-async def create_user(ev: UserEvent, bg: BackgroundTasks):
-    await producer.send(st.TOPIC_USERS, ev.model_dump())
-    start_consumer(bg, st.TOPIC_USERS)
+async def create_user(ev: UserEvent):
+    await _produce(TOPIC["user"], ev.model_dump())
     return {"status": "success"}
 
-# --- 2. Movie ---
+
 @router.post("/api/events/movie", status_code=201)
-async def create_movie(ev: MovieEvent, bg: BackgroundTasks):
-    await producer.send(st.TOPIC_MOVIES, ev.model_dump())
-    start_consumer(bg, st.TOPIC_MOVIES)
+async def create_movie(ev: MovieEvent):
+    await _produce(TOPIC["movie"], ev.model_dump())
     return {"status": "success"}
 
-# --- 3. Payment ---
+
 @router.post("/api/events/payment", status_code=201)
-async def create_payment(ev: PaymentEvent, bg: BackgroundTasks):
-    await producer.send(st.TOPIC_PAYMENTS, ev.model_dump())
-    start_consumer(bg, st.TOPIC_PAYMENTS)
+async def create_payment(ev: PaymentEvent):
+    await _produce(TOPIC["payment"], ev.model_dump())
     return {"status": "success"}
+
 
 @router.get("/api/events/health", tags=["health"])
 def health():
-    """Проверка живости сервиса для постман-тестов."""
     return {"status": True}

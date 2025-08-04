@@ -34,11 +34,19 @@ jobs:
           docker compose --version
       
       - name: Start services with Docker Compose
+        # run: |
+        #   docker compose up -d
+        #   # Wait for services to be ready
+        #   echo "Waiting for services to be ready..."
+        #   sleep 120
         run: |
           docker compose up -d
-          # Wait for services to be ready
-          echo "Waiting for services to be ready..."
-          sleep 120
+          # ждём Kafka
+          until docker compose exec kafka bash -c 'echo > /dev/tcp/localhost/9092' 2>/dev/null; do
+            echo "waiting for kafka…"; sleep 4; done
+          # ждём events-service health
+          until curl -s http://events-service:8082/api/events/health > /dev/null; do
+            echo "waiting for events-service…"; sleep 3; done
       
       - name: Set up Node.js
         uses: actions/setup-node@v3

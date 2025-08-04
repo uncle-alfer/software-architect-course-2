@@ -1,29 +1,33 @@
-﻿import asyncio, logging, json
-from aiokafka import AIOKafkaProducer, AIOKafkaConsumer
-from fastapi import BackgroundTasks
-from .settings import get_settings
+﻿import asyncio, logging, json, os
+from aiokafka import AIOKafkaProducer
 
-settings = get_settings()
-logger = logging.getLogger("events")
+BOOTSTRAP = os.getenv("KAFKA_BROKERS", "kafka:9092")
+log = logging.getLogger("kafka-bus")
 
-producer = AIOKafkaProducer(
-    bootstrap_servers=settings.KAFKA_BROKERS,
-    value_serializer=lambda v: json.dumps(v).encode()
-)
+producer: AIOKafkaProducer | None = None
 
-def start_consumer(background: BackgroundTasks, topic: str):
-    async def _consume():
-        consumer = AIOKafkaConsumer(
-            topic,
-            bootstrap_servers=settings.KAFKA_BROKERS,
-            value_deserializer=lambda b: json.loads(b.decode()),
-            auto_offset_reset="earliest",
-            group_id="events-service"
-        )
-        await consumer.start()
+
+async def wait_kafka(timeout: int = 30):
+    """Блокируем запуск приложения, пока Kafka не примет соединение."""
+    global producer
+    producer = AIOKafkaProducer(
+        bootstrap_servers=BOOTSTRAP,
+        value_serializer=lambda v: json.dumps(v).encode(),
+    )
+    deadline = asyncio.get_event_loop().time() + timeout
+    while True:
         try:
-            async for msg in consumer:
-                logger.info("Consumed %s: %s", topic, msg.value)
-        finally:
-            await consumer.stop()
-    background.add_task(_consume)
+            await producer.start()
+            log.info("Kafka connected")
+            return
+        except Exception as exc:
+            if asyncio.get_event_loop().time() > deadline:
+                log.error("Kafka unavailable: %s", exc)
+                raise
+            log.warning("Kafka not ready, retry in 2 s")
+            await asyncio.sleep(2)
+
+
+async def stop_kafka():
+    if producer:
+        await producer.stop()
