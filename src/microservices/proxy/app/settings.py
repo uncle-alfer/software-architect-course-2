@@ -4,7 +4,6 @@ from pydantic import Field, AnyHttpUrl
 
 
 class Settings(BaseSettings):
-    # Port FastAPI будет слушать внутри контейнера
     PORT: int = 8000
 
     # Бэкенды

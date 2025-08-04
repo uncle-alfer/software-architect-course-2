@@ -364,3 +364,9 @@ https://cinemaabyss.example.com/api/movies
 kubectl delete all --all -n cinemaabyss
 kubectl delete namespace cinemaabyss
 ```
+
+![cinemaabyss.example.com](docs/screenshots/task_4_2.png)
+
+![tests](docs/screenshots/task_4_4.png)
+
+![helm](docs/screenshots/task_4_6.png)

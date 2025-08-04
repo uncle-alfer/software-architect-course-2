@@ -67,10 +67,6 @@ services:
       DB_CONNECTION_STRING: postgres://postgres:postgres_password@postgres:5432/cinemaabyss?sslmode=disable
     networks:
       - cinemaabyss-network
-    # entrypoint: >
-    #   sh -c "until pg_isready -h postgres -U postgres;
-    #          do echo 'Waiting for db'; sleep 2; done;
-    #          exec ./monolith"
 
   # Movies Microservice
   movies-service:
@@ -89,10 +85,6 @@ services:
       DB_CONNECTION_STRING: postgres://postgres:postgres_password@postgres:5432/cinemaabyss?sslmode=disable
     networks:
       - cinemaabyss-network
-    # entrypoint: >
-    #   sh -c "until pg_isready -h postgres -U postgres;
-    #          do echo 'Waiting for db'; sleep 2; done;
-    #          exec ./movies-service"
 
   # Events Microservice
   events-service:

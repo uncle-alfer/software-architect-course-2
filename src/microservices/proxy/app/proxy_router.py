@@ -11,12 +11,11 @@ client   = httpx.AsyncClient(timeout=60.0)
 def choose_backend(path: str) -> str | None:
     """Возвращает base-URL нужного сервиса или None, если путь неизвестен."""
     if path.startswith("/api/movies"):
-        # градуальная миграция
         if settings.GRADUAL_MIGRATION:
             roll = random.randint(1, 100)
             if roll <= settings.MOVIES_MIGRATION_PERCENT:
                 return str(settings.MOVIES_SERVICE_URL)
-        return str(settings.MONOLITH_URL)  # fallback
+        return str(settings.MONOLITH_URL)
     if path.startswith("/api/events"):
         return str(settings.EVENTS_SERVICE_URL)
     if path.startswith("/api/users"):

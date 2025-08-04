@@ -1,7 +1,6 @@
 ﻿import logging, asyncio
 from fastapi import APIRouter, HTTPException, status
 from .models import UserEvent, MovieEvent, PaymentEvent
-# from .kafka_bus import producer, wait_kafka, stop_kafka
 from . import kafka_bus as kb
 from .settings import get_settings
 
