@@ -280,7 +280,9 @@ cat .docker/config.json | base64
 
 ![cinemaabyss.example.com](docs/screenshots/task_3_2_1.png)
 
-![cinemaabyss.example.com](docs/screenshots/task_3_2_2.png)
+![k8s-tests](docs/screenshots/task_3_2_2.png)
+
+![kafka-ui](docs/screenshots/task_3_2_2_2.png)
 
 # Задание 4
 Для простоты дальнейшего обновления и развертывания вам как архитектуру необходимо так же реализовать helm-чарты для прокси-сервиса и проверить работу 
