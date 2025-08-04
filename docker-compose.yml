@@ -10,7 +10,7 @@ services:
       POSTGRES_PASSWORD: postgres_password
       POSTGRES_DB: cinemaabyss
     ports:
-      - "5432:5432"
+      - "25432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
       - ./src/database/init.sql:/docker-entrypoint-initdb.d/init.sql
@@ -18,7 +18,7 @@ services:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
     networks:
       - cinemaabyss-network
 
@@ -57,7 +57,9 @@ services:
       dockerfile: Dockerfile
     container_name: cinemaabyss-monolith
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
+    restart: on-failure
     ports:
       - "8080:8080"
     environment:
@@ -65,6 +67,10 @@ services:
       DB_CONNECTION_STRING: postgres://postgres:postgres_password@postgres:5432/cinemaabyss?sslmode=disable
     networks:
       - cinemaabyss-network
+    # entrypoint: >
+    #   sh -c "until pg_isready -h postgres -U postgres;
+    #          do echo 'Waiting for db'; sleep 2; done;
+    #          exec ./monolith"
 
   # Movies Microservice
   movies-service:
@@ -73,7 +79,9 @@ services:
       dockerfile: Dockerfile
     container_name: cinemaabyss-movies-service
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
+    restart: on-failure
     ports:
       - "8081:8081"
     environment:
@@ -81,6 +89,10 @@ services:
       DB_CONNECTION_STRING: postgres://postgres:postgres_password@postgres:5432/cinemaabyss?sslmode=disable
     networks:
       - cinemaabyss-network
+    # entrypoint: >
+    #   sh -c "until pg_isready -h postgres -U postgres;
+    #          do echo 'Waiting for db'; sleep 2; done;
+    #          exec ./movies-service"
 
   # Events Microservice
   events-service:
