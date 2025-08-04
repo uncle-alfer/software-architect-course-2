@@ -29,14 +29,16 @@ async def proxy(request: Request, full_path: str) -> Response:
     if upstream is None:
         return Response(status_code=404, content="Unknown route")
 
+    # гарантируем ровно один «/» между base и path
+    target_url = f"{upstream.rstrip('/')}{request.url.path}"
     resp = await client.request(
         request.method,
-        f"{upstream}{request.url.path}",
-        headers={**request.headers, "x-request-id": request.headers.get("x-request-id","proxy-generated")},
-        params=request.query_params,
-        content=await request.body(),
-        follow_redirects=False
-    )
+        target_url,
+         headers={**request.headers, "x-request-id": request.headers.get("x-request-id","proxy-generated")},
+         params=request.query_params,
+         content=await request.body(),
+         follow_redirects=False
+     )
 
     if resp.status_code >= 300:
         return Response("[]", media_type="application/json", status_code=200)
