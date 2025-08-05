@@ -154,3 +154,6 @@ go.work
 
 # Postman tests reports
 tests/postman/reports/
+plantuml.jar
+minikube-linux-amd64
+kubectl

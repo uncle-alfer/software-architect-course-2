@@ -2,10 +2,9 @@
 
 # Задание 1
 
-1. Спроектируйте to be архитектуру КиноБездны, разделив всю систему на отдельные домены и организовав интеграционное взаимодействие и единую точку вызова сервисов.
-Результат представьте в виде контейнерной диаграммы в нотации С4.
-Добавьте ссылку на файл в этот шаблон
-[ссылка на файл](ссылка)
+1. To-Be Container Diagram
+
+![To-Be Container Diagram](docs/architecture/to-be-container.png)
 
 # Задание 2
 
@@ -58,6 +57,12 @@
 
 Необходимые тесты для проверки этого API вызываются при запуске npm run test:local из папки tests/postman 
 Приложите скриншот тестов и скриншот состояния топиков Kafka из UI http://localhost:8090 
+
+![tests](docs/screenshots/2_1.png)
+
+![kafka](docs/screenshots/2_2.png)
+
+![logs](docs/screenshots/2_3.png)
 
 # Задание 3
 
@@ -275,6 +280,11 @@ cat .docker/config.json | base64
 #### Шаг 3
 Добавьте сюда скриншота вывода при вызове https://cinemaabyss.example.com/api/movies и  скриншот вывода event-service после вызова тестов.
 
+![cinemaabyss.example.com](docs/screenshots/task_3_2_1.png)
+
+![k8s-tests](docs/screenshots/task_3_2_2.png)
+
+![kafka-ui](docs/screenshots/task_3_2_2_2.png)
 
 # Задание 4
 Для простоты дальнейшего обновления и развертывания вам как архитектуру необходимо так же реализовать helm-чарты для прокси-сервиса и проверить работу 
@@ -356,3 +366,9 @@ https://cinemaabyss.example.com/api/movies
 kubectl delete all --all -n cinemaabyss
 kubectl delete namespace cinemaabyss
 ```
+
+![cinemaabyss.example.com](docs/screenshots/task_4_2.png)
+
+![tests](docs/screenshots/task_4_4.png)
+
+![helm](docs/screenshots/task_4_6.png)
