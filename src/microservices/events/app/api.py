@@ -27,7 +27,7 @@ async def _shutdown():
 
 async def _produce(topic: str, payload: dict):
     try:
-        await kb.producer.send(topic, payload)
+        await kb.producer.send_and_wait(topic, payload)
     except Exception as exc:
         log.error("Kafka send failed: %s", exc)
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="kafka unavailable")
